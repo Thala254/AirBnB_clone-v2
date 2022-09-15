@@ -2,7 +2,6 @@
 """ Console Module """
 import cmd
 import sys
-import shlex  # to split lines along spaces except in double quotes
 from models.base_model import BaseModel
 from models.__init__ import storage
 from models.user import User
@@ -20,21 +19,21 @@ class HBNBCommand(cmd.Cmd):
     prompt = '(hbnb) ' if sys.__stdin__.isatty() else ''
 
     classes = {
-               'BaseModel': BaseModel, 'User': User, 'Place': Place,
-               'State': State, 'City': City, 'Amenity': Amenity,
-               'Review': Review
-              }
+        'BaseModel': BaseModel, 'User': User, 'Place': Place,
+        'State': State, 'City': City, 'Amenity': Amenity,
+        'Review': Review
+    }
     dot_cmds = ['all', 'count', 'show', 'destroy', 'update']
     types = {
-             'number_rooms': int, 'number_bathrooms': int,
-             'max_guest': int, 'price_by_night': int,
-             'latitude': float, 'longitude': float
-            }
+        'number_rooms': int, 'number_bathrooms': int,
+        'max_guest': int, 'price_by_night': int,
+        'latitude': float, 'longitude': float
+    }
 
     def preloop(self):
         """Prints if isatty is false"""
         if not sys.__stdin__.isatty():
-            print('(hbnb)')
+            print('(hbnb) ', end='')
 
     def precmd(self, line):
         """Reformat command line for advanced command syntax.
@@ -114,41 +113,26 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
-    def key_values_to_dict(self, args):
-        """ returns a dictionary from key value pairs """
-        dictionary = {}
-        for arg in args:
-            if "=" in arg:
-                kvp = arg.split('=', 1)
-                key = kvp[0]
-                value = kvp[1]
-                if value[0] == value[-1] == '"':
-                    value = shlex.split(value)[0].replace('_', ' ')
-                else:
-                    try:
-                        value = int(value)
-                    except Exception:
-                        try:
-                            value = float(value)
-                        except Exception:
-                            continue
-                dictionary[key] = value
-        return dictionary
-
     def do_create(self, args):
         """ Create an object of any class"""
-        args = args.split()
-        if len(args) == 0:
+        args = args.split(" ")
+        class_args = args[0]
+        if not class_args:
             print("** class name missing **")
-            return False
-        if args[0] in self.classes:
-            new_dict = self.key_values_to_dict(args[1:])
-            new_instance = self.classes[args[0]](**new_dict)
-        else:
+            return
+        elif class_args not in HBNBCommand.classes:
             print("** class doesn't exist **")
-            return False
+            return
+        kwargs = args[1:]
+        new_instance = HBNBCommand.classes[class_args]()
+        for key_value in kwargs:
+            [key, value] = key_value.split("=")
+            value = value.replace("_", " ")
+            value = value.replace("\"", "")
+            setattr(new_instance, key, value)
+        storage.new(new_instance)
+        storage.save()
         print(new_instance.id)
-        new_instance.save()
 
     def help_create(self):
         """ Help information for the create method """
@@ -227,17 +211,16 @@ class HBNBCommand(cmd.Cmd):
 
         if args:
             args = args.split(' ')[0]  # remove possible trailing args
-            if args not in self.classes:
+            if args not in HBNBCommand.classes:
                 print("** class doesn't exist **")
-                return False
-            object_dict = storage.all(self.classes[args])
+                return
+            for k, v in storage.all(HBNBCommand.classes[args]).items():
+                if k.split('.')[0] == args:
+                    print_list.append(str(v))
         else:
-            object_dict = storage.all()
-        for item in object_dict:
-            print_list.append(str(object_dict[item]))
-        print("[", end="")
-        print(", ".join(print_list), end="")
-        print("]")
+            for k, v in storage.all().items():
+                print_list.append(str(v))
+        print(print_list)
 
     def help_all(self):
         """ Help information for the all command """
