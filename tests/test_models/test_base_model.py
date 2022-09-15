@@ -124,13 +124,11 @@ class TestBasemodel(unittest.TestCase):
         with self.assertRaises(TypeError):
             new = self.value(**n)
 
-
     def test_kwargs_one(self):
         """ """
         n = {'Name': 'test'}
         new = self.value(**n)
         self.assertEqual(n['Name'], new.Name)
-
 
     def test_created_at(self):
         """ """
