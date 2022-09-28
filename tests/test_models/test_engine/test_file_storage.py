@@ -66,6 +66,8 @@ test_file_storage.py'])
                             "{:s} method needs a docstring".format(func[0]))
 
 
+@unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE', 'fs') == 'db',
+                 "db does not have FileStorage")
 class TestFileStorage(unittest.TestCase):
     """ Class to test the file storage method """
 
@@ -170,9 +172,6 @@ class TestFileStorage(unittest.TestCase):
         print(type(storage))
         self.assertEqual(type(storage), FileStorage)
 
-    """Test the FileStorage class"""
-    @unittest.skipIf(models.HBNB_TYPE_STORAGE == 'db',
-                     "not testing db storage")
     def test_all_returns_dict(self):
         """Test that all returns the FileStorage.__objects attr"""
         storage = FileStorage()
@@ -180,8 +179,6 @@ class TestFileStorage(unittest.TestCase):
         self.assertEqual(type(new_dict), dict)
         self.assertIs(new_dict, storage._FileStorage__objects)
 
-    @unittest.skipIf(models.HBNB_TYPE_STORAGE == 'db',
-                     "not testing db storage")
     def test_new(self):
         """test that new adds an object to the FileStorage.__objects attr"""
         storage = FileStorage()
@@ -197,8 +194,6 @@ class TestFileStorage(unittest.TestCase):
                 self.assertEqual(test_dict, storage._FileStorage__objects)
         FileStorage._FileStorage__objects = save
 
-    @unittest.skipIf(models.HBNB_TYPE_STORAGE == 'db',
-                     "not testing db storage")
     def test_save(self):
         """Test that save properly saves objects to file.json"""
         storage = FileStorage()

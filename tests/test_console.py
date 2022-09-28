@@ -4,13 +4,13 @@ Contains the class TestConsoleDocs
 """
 
 from datetime import datetime
+from contextlib import contextmanager
 import inspect
 import pep8
 import unittest
 import io
 import sys
 import os
-from contextlib import contextmanager
 import console
 from console import HBNBCommand
 from models.amenity import Amenity
@@ -71,7 +71,8 @@ class TestHBNBCommandDocs(unittest.TestCase):
 
 class TestHBNBCommand(unittest.TestCase):
     """ tests on HBNBCommand Class """
-    def setUp(self):
+    @classmethod
+    def setUpClass(self):
         self.cli = HBNBCommand()
         test_args = {'updated_at': datetime(2017, 2, 11, 23, 48, 34, 339879),
                      'id': 'd3da85f2-499c-43cb-b33d-3d7935bc808c',
@@ -80,7 +81,8 @@ class TestHBNBCommand(unittest.TestCase):
         self.model = Amenity(**test_args)
         self.model.save()
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(self):
         self.cli.do_destroy("Amenity d3da85f2-499c-43cb-b33d-3d7935bc808c")
 
     def test_quit(self):
@@ -93,16 +95,20 @@ class TestHBNBCommand(unittest.TestCase):
         with captured_output() as (out, err):
             self.cli.do_show("Amenity d3da85f2-499c-43cb-b33d-3d7935bc808c")
         output = out.getvalue().strip()
-        self.assertFalse("2017, 2, 11, 23, 48, 91" in output)
-        self.assertTrue('2017, 2, 11, 23, 48, 34' in output)
+        self.assertFalse(datetime(2017, 2, 11, 23, 48, 26, 45784) in output)
+        self.assertTrue(datetime(2017, 2, 11, 23, 48, 34, 339743) in output)
 
     @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE', 'fs') == 'db', "db")
     def test_show_correct(self):
         with captured_output() as (out, err):
             self.cli.do_show("Amenity d3da85f2-499c-43cb-b33d-3d7935bc808c")
         output = out.getvalue().strip()
-        self.assertFalse("2017, 2, 11, 23, 48, 91, 339743" in output)
-        self.assertFalse('2017, 2, 11, 23, 48, 34, 339743' in output)
+        self.assertFalse(
+                         "datetime.datetime(2017, 2, 11, 23, 48, 26, 339743)"
+                         in output)
+        self.assertTrue(
+                         "datetime.datetime(2017, 2, 11, 23, 48, 34, 339743)"
+                         in output)
 
     def test_show_error_no_args(self):
         with captured_output() as (out, err):
@@ -150,7 +156,7 @@ class TestHBNBCommand(unittest.TestCase):
                      'id': 'f519fb40-1f5c-458b-945c-2ee8eaaf4901',
                      'created_at': datetime(2017, 2, 12, 00, 31, 53, 331900),
                      'name': "TEST_DESTROY"}
-        testmodel = Amenity(test_args)
+        testmodel = Amenity(**test_args)
         testmodel.save()
         self.cli.do_destroy("Amenity f519fb40-1f5c-458b-945c-2ee8eaaf4901")
 

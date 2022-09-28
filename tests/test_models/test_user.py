@@ -1,11 +1,12 @@
 #!/usr/bin/python3
 """ """
-from tests.test_models.test_base_model import TestBasemodel
-from models.user import User
 import unittest
 import inspect
 import pep8 as pycodestyle
+from datetime import datetime
 import models
+from models import storage
+from models.user import User
 
 
 class TestUserDocs(unittest.TestCase):
@@ -44,31 +45,43 @@ class TestUserDocs(unittest.TestCase):
                 )
 
 
-class test_User(TestBasemodel):
-    """ """
+class TestUser(unittest.TestCase):
+    """ Tests for User class """
+    def test_var_initialization(self):
+        """Check default type"""
+        test_user = {'id': "001",
+                     'email': "you@g.com",
+                     'password': "1234",
+                     'first_name': "TEST",
+                     'last_name': "REVIEW"}
+        model = User(**test_user)
+        self.assertIsInstance(model.created_at, datetime)
+        self.assertIsInstance(model.updated_at, datetime)
+        self.assertIsInstance(model.id, str)
+        self.assertIsInstance(model.email, str)
+        self.assertIsInstance(model.password, str)
+        self.assertIsInstance(model.first_name, str)
+        self.assertIsInstance(model.last_name, str)
 
-    def __init__(self, *args, **kwargs):
-        """ """
-        super().__init__(*args, **kwargs)
-        self.name = "User"
-        self.value = User
+    def test_no_arguments(self):
+        """test initialization without arguments"""
+        model = User()
+        self.assertTrue(hasattr(model, "id"))
+        self.assertTrue(hasattr(model, "created_at"))
+        self.assertTrue(hasattr(model, "email"))
+        self.assertTrue(hasattr(model, "password"))
+        self.assertTrue(hasattr(model, "first_name"))
+        self.assertTrue(hasattr(model, "last_name"))
 
-    def test_first_name(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.first_name), str)
-
-    def test_last_name(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.last_name), str)
-
-    def test_email(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.email), str)
-
-    def test_password(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.password), str)
+    def test_save(self):
+        """saving the object to storage"""
+        test_user = {'id': "001",
+                     'email': "you@g.com",
+                     'password': "1234",
+                     'first_name': "TEST",
+                     'last_name': "REVIEW"}
+        user = User(**test_user)
+        user.save()
+        all_users = storage.all('User')
+        self.assertIn(f"User.{test_user['id']}", all_users.keys())
+        storage.delete(user)

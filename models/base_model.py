@@ -4,20 +4,25 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
+from os import getenv
 import models  # import storage, HBNB_TYPE_STORAGE
 
-if models.HBNB_TYPE_STORAGE == "db":
+if getenv('HBNB_TYPE_STORAGE') == "db":
     Base = declarative_base()
 else:
-    Base = object
+    class Base:
+        """useless class"""
+        pass
 
 
 class BaseModel:
     """A base class for all hbnb models"""
-    if models.HBNB_TYPE_STORAGE == "db":
+    if getenv('HBNB_TYPE_STORAGE') == "db":
         id = Column(String(60), primary_key=True, nullable=False)
-        created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-        updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+        created_at = Column(DateTime, default=datetime.utcnow(),
+                            nullable=False)
+        updated_at = Column(DateTime, default=datetime.utcnow(),
+                            nullable=False)
 
     def __init__(self, *args, **kwargs):
         """Instantiates a new model"""
@@ -26,26 +31,50 @@ class BaseModel:
             self.created_at = datetime.utcnow()
             self.updated_at = datetime.utcnow()
         else:
+            """
             for key, value in kwargs.items():
                 if key != "__class__":
                     setattr(self, key, value)
-            if kwargs.get('created_at', None) and type(self.created_at) is str:
+            if kwargs.get('created_at') and type(kwargs.get(
+                                                            'created_at'
+                                                           )) is str:
                 self.created_at = datetime.strptime(kwargs['created_at'],
                                                     '%Y-%m-%dT%H:%M:%S.%f')
             else:
                 self.created_at = datetime.utcnow()
-            if kwargs.get('updated_at', None) and type(self.updated_at) is str:
+            if kwargs.get('updated_at') and type(kwargs.get(
+                                                            'updated_at'
+                                                           )) is str:
                 self.updated_at = datetime.strptime(kwargs['created_at'],
                                                     '%Y-%m-%dT%H:%M:%S.%f')
             else:
                 self.updated_at = datetime.utcnow()
-            if kwargs.get('id', None) is None:
+            if kwargs.get('id') is None:
                 self.id = str(uuid.uuid4())
+            """
+            if 'id' not in kwargs:
+                kwargs['id'] = str(uuid.uuid4())
+            if 'created_at' not in kwargs:
+                kwargs['created_at'] = datetime.now()
+            elif not isinstance(kwargs['created_at'], datetime):
+                kwargs['created_at'] = datetime.strptime(kwargs['created_at'],
+                                                         "%Y-%m-%d %H:%M:%S.%f"
+                                                         )
+            if 'updated_at' not in kwargs:
+                kwargs['updated_at'] = datetime.now()
+            elif not isinstance(kwargs['updated_at'], datetime):
+                kwargs['updated_at'] = datetime.strptime(kwargs['updated_at'],
+                                                         "%Y-%m-%d %H:%M:%S.%f"
+                                                         )
+            if getenv('HBNB_TYPE_STORAGE') != "db":
+                kwargs.pop('__class__', None)
+            for k, v in kwargs.items():
+                setattr(self, k, v)
 
     def __str__(self):
         """Returns a string representation of the instance"""
-        cls = (str(type(self)).split('.')[-1]).split('\'')[0]
-        return '[{}] ({}) {}'.format(cls, self.id, self.__dict__)
+        return '[{}] ({}) {}'.format(type(self).__name__,
+                                     self.id, self.__dict__)
 
     def save(self):
         """Updates updated_at with current time when instance is changed"""
@@ -55,13 +84,23 @@ class BaseModel:
 
     def to_dict(self):
         """Convert instance into dict format"""
-        dictionary = {}
-        dictionary.update(self.__dict__)
-        dictionary.update({'__class__': self.__class__.__name__})
-        dictionary['created_at'] = self.created_at.isoformat()
-        dictionary['updated_at'] = self.updated_at.isoformat()
+
+        """
+        dictionary = self.__dict__.copy()
         if '_sa_instance_state' in dictionary:
-            del dictionary['_sa_instance_state']
+            dictionary.pop('_sa_instance_state', None)
+        dictionary["created_at"] = dictionary["created_at"].isoformat()
+        dictionary["updated_at"] = dictionary["updated_at"].isoformat()
+        dictionary["__class__"] = type(self).__name__
+        return dictionary
+        """
+        dictionary = {
+            k: str(v) for k, v in self.__dict__.items()
+        }
+        dictionary.pop('_sa_instance_state', None)
+        dictionary.update({
+            '__class__': self.__class__.__name__
+        })
         return dictionary
 
     def delete(self):

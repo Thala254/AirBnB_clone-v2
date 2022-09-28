@@ -45,7 +45,7 @@ class DBStorage:
                 results = self.__session.query(classes[key]).all()
                 for obj in results:
                     k = f'{obj.__class__.__name__}.{obj.id}'
-                    del obj._sa_instance_state
+                    # del obj._sa_instance_state
                     objects[k] = obj
         return objects
 
@@ -61,10 +61,11 @@ class DBStorage:
         """ deletes from the current database session obj if not None """
         if obj:
             self.__session.delete(obj)
+            self.__session.commit()
 
     def reload(self):
         """ creates all tables in the database """
         Base.metadata.create_all(self.__engine)
-        sess = sessionmaker(bind=self.__engine, expire_on_commit=False)
-        Session = scoped_session(sess)
-        self.__session = Session
+        self.__session = scoped_session(sessionmaker(bind=self.__engine,
+                                                     expire_on_commit=False
+                                                     ))

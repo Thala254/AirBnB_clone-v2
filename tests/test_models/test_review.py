@@ -1,11 +1,16 @@
 #!/usr/bin/python3
 """ """
-from tests.test_models.test_base_model import TestBasemodel
-from models.review import Review
 import unittest
 import inspect
 import pep8 as pycodestyle
+from datetime import datetime
 import models
+from models import storage
+from models.review import Review
+from models.place import Place
+from models.state import State
+from models.user import User
+from models.city import City
 
 
 class TestReviewDocs(unittest.TestCase):
@@ -44,26 +49,62 @@ class TestReviewDocs(unittest.TestCase):
                 )
 
 
-class test_review(TestBasemodel):
-    """ """
+class TestReview(unittest.TestCase):
+    """ Tests for Review Class """
+    def test_initialization_no_arg(self):
+        """test simple initialization with no arguments"""
+        model = Review()
+        self.assertTrue(hasattr(model, "place_id"))
+        self.assertTrue(hasattr(model, "user_id"))
+        self.assertTrue(hasattr(model, "text"))
+        self.assertTrue(hasattr(model, "id"))
+        self.assertTrue(hasattr(model, "created_at"))
 
-    def __init__(self, *args, **kwargs):
-        """ """
-        super().__init__(*args, **kwargs)
-        self.name = "Review"
-        self.value = Review
+    def test_var_initialization(self):
+        """Check default type"""
+        model = Review()
+        self.assertIsInstance(model.created_at, datetime)
 
-    def test_place_id(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.place_id), str)
-
-    def test_user_id(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.user_id), str)
-
-    def test_text(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.text), str)
+    def test_save(self):
+        """saving the object to storage"""
+        test_user = {'id': "004",
+                     'email': "you@g.com",
+                     'password': "1234",
+                     'first_name': "TEST",
+                     'last_name': "REVIEW"}
+        user = User(**test_user)
+        test_state = {'id': "004",
+                      'created_at': datetime(2022, 8, 12, 00, 31, 55, 331997),
+                      'name': "TEST STATE FOR CITY"}
+        state = State(**test_state)
+        test_city = {'id': "007",
+                     'name': "CITY SET UP",
+                     'state_id': "004"}
+        city = City(**test_city)
+        test_place = {'id': "005",
+                      'city_id': "007",
+                      'user_id': "004",
+                      'name': "TEST REVIEW",
+                      'description': "blah blah",
+                      'number_rooms': 4,
+                      'number_bathrooms': 2,
+                      'max_guest': 4,
+                      'price_by_night': 23,
+                      'latitude': 45.5,
+                      'longitude': 23.4}
+        place = Place(**test_place)
+        test_review = {'text': "a text",
+                       'place_id': "005",
+                       'user_id': "004"}
+        review = Review(**test_review)
+        user.save()
+        state.save()
+        city.save()
+        place.save()
+        review.save()
+        all_reviews = storage.all("Review")
+        self.assertIn(f"Review.{review.id}", all_reviews.keys())
+        storage.delete(review)
+        storage.delete(place)
+        storage.delete(user)
+        storage.delete(state)
