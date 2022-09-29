@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 """
 Fabric script that distributes an archive to my web servers,
 using the function do_deploy
