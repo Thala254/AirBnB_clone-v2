@@ -2,6 +2,7 @@
 """ Console Module """
 import cmd
 import sys
+from os import getenv
 from models.base_model import BaseModel
 from models.__init__ import storage
 from models.user import User
@@ -163,7 +164,7 @@ class HBNBCommand(cmd.Cmd):
 
         key = c_name + "." + c_id
         try:
-            print(storage._FileStorage__objects[key])
+            print(storage.all()[key])
         except KeyError:
             print("** no instance found **")
 
@@ -192,13 +193,13 @@ class HBNBCommand(cmd.Cmd):
             print("** instance id missing **")
             return
 
-        key = c_name + "." + c_id
-
-        try:
-            del(storage.all()[key])
-            storage.save()
-        except KeyError:
-            print("** no instance found **")
+        all_objs = storage.all()
+        for k, v in all_objs.items():
+            if c_id in k and c_name == v.__class__.__name__:
+                storage.delete(v)
+                # storage.save()
+                return
+        print("** no instance found **")
 
     def help_destroy(self):
         """ Help information for the destroy command """
@@ -230,7 +231,7 @@ class HBNBCommand(cmd.Cmd):
     def do_count(self, args):
         """Count current number of class instances"""
         count = 0
-        for k, v in storage._FileStorage__objects.items():
+        for k, v in storage.all().items():
             if args == k.split('.')[0]:
                 count += 1
         print(count)
