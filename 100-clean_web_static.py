@@ -1,5 +1,8 @@
 #!/usr/bin/python3
-"""Fabric script that deletes out-of-date archives"""
+"""
+Fabric script that deletes out-of-date archives
+"""
+
 from fabric.api import run, put, local, env, cd, lcd
 from datetime import datetime
 from os.path import exists, isdir

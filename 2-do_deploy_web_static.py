@@ -1,6 +1,9 @@
 #!/usr/bin/python3
-"""Fabric script that distributes an archive to my web servers, using the
-function do_deploy"""
+"""
+Fabric script that distributes an archive to my web servers, using the
+function do_deploy
+"""
+
 from fabric.api import put, run, env
 from os.path import exists
 env.hosts = ['44.210.86.178', '44.200.174.223']

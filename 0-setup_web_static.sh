@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 #script that sets up my web server for deployment of web_static
+
 apt-get -y update
 apt-get -y upgrade
 apt-get -y install nginx

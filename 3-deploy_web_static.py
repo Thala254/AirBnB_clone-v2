@@ -1,5 +1,8 @@
 #!/usr/bin/python3
-"""Fabric script that creates and distributes an archive to my web servers"""
+"""
+Fabric script that creates and distributes an archive to my web servers
+"""
+
 from fabric.api import run, put, local, env
 from datetime import datetime
 from os.path import exists, isdir
