@@ -6,6 +6,8 @@ function do_deploy
 
 from fabric.api import put, run, env
 from os.path import exists
+
+
 env.hosts = ['44.210.86.178', '44.200.174.223']
 
 
@@ -25,6 +27,7 @@ def do_deploy(archive_path):
         run(f'rm -rf {path}{no_ext}/web_static')
         run('rm -rf /data/web_static/current')
         run(f'ln -s {path}{no_ext}/ /data/web_static/current')
+        print('New version deployed!')
         return True
     except Exception:
         return False

@@ -2,14 +2,16 @@
 """
 Fabric script that deletes out-of-date archives
 """
-
-from fabric.api import run, put, local, env, cd, lcd
+from fabric.api import run, put, local, env, cd, lcd, runs_once
 from datetime import datetime
 from os.path import exists, isdir
+from os import stat
+
 
 env.hosts = ['44.210.86.178', '44.200.174.223']
 
 
+@runs_once
 def do_pack():
     """generates an archive for web_static folder"""
     try:
@@ -17,7 +19,10 @@ def do_pack():
         if isdir("versions") is False:
             local("mkdir versions")
         filename = f"versions/web_static_{date}.tgz"
+        print(f"Packing web_static to {filename}")
         local(f"tar -cvzf {filename} web_static")
+        archive_size = stat(filename).st_size
+        print(f"web_static packed: {filename} -> {archive_size} Bytes")
         return filename
     except Exception:
         return None
@@ -39,6 +44,7 @@ def do_deploy(archive_path):
         run(f'rm -rf {path}{no_ext}/web_static')
         run('rm -rf /data/web_static/current')
         run(f'ln -s {path}{no_ext}/ /data/web_static/current')
+        print('New version deployed!')
         return True
     except Exception:
         return False
@@ -47,22 +53,26 @@ def do_deploy(archive_path):
 def deploy():
     """creates and distributes an archive to my web servers"""
     archive_path = do_pack()
-    if archive_path is None:
-        return False
-    return do_deploy(archive_path)
+    return do_deploy(archive_path) if archive_path else False
 
 
 def do_clean(number=0):
     """deletes out-of-date archives"""
-    nb_of_arch = local('ls -ltr versions | wc -l', capture=True).stdout
-    nb_of_arch = int(nb_of_arch) - 1
+    nb_of_arch_loc = local('ls -ltr versions | wc -l', capture=True).stdout
+    nb_of_arch_rem = run('ls -ltr /data/web_static/releases | wc -l').stdout
+    nb_of_arch_loc = int(nb_of_arch_loc) - 1
+    nb_of_arch_rem = int(nb_of_arch_rem) - 1
     if int(number) == 0 or int(number) == 1:
-        arch_to_rm = nb_of_arch - 1
+        arch_to_rm_loc = nb_of_arch_loc - 1
+        arch_to_rm_rem = nb_of_arch_rem - 1
     else:
-        arch_to_rm = nb_of_arch - int(number)
+        arch_to_rm_loc = nb_of_arch_loc - int(number)
+        arch_to_rm_rem = nb_of_arch_rem - int(number)
     with lcd('./versions/'):
-        local(f"ls -ltr | tail -n {nb_of_arch} | head -n {arch_to_rm} | " +
+        local("ls -ltr | tail -n {} | head -n {} | "
+              .format(nb_of_arch_loc, arch_to_rm_loc) +
               "awk '{print $9}' | xargs -d '\n' rm -rf")
     with cd('/data/web_static/releases/'):
-        run(f"ls -ltr | tail -n {nb_of_arch} | head -n {arch_to_rm} | " +
+        run("ls -ltr | tail -n {} | head -n {} | "
+            .format(nb_of_arch_rem, arch_to_rm_rem) +
             "awk '{print $9}' | xargs -d '\n' rm -rf")

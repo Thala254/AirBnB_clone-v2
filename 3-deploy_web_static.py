@@ -3,13 +3,15 @@
 Fabric script that creates and distributes an archive to my web servers
 """
 
-from fabric.api import run, put, local, env
+from fabric.api import run, put, local, env, runs_once
 from datetime import datetime
 from os.path import exists, isdir
+from os import stat
 
 env.hosts = ['44.210.86.178', '44.200.174.223']
 
 
+@runs_once
 def do_pack():
     """generates an archive for web_static folder"""
     try:
@@ -17,7 +19,10 @@ def do_pack():
         if isdir("versions") is False:
             local("mkdir versions")
         filename = f"versions/web_static_{date}.tgz"
+        print(f"Packing web_static to {filename}")
         local(f"tar -cvzf {filename} web_static")
+        archive_size = stat(filename).st_size
+        print(f"web_static packed: {filename} -> {archive_size} Bytes")
         return filename
     except Exception:
         return None
@@ -39,6 +44,7 @@ def do_deploy(archive_path):
         run(f'rm -rf {path}{no_ext}/web_static')
         run('rm -rf /data/web_static/current')
         run(f'ln -s {path}{no_ext}/ /data/web_static/current')
+        print('New version deployed!')
         return True
     except Exception:
         return False
@@ -47,6 +53,4 @@ def do_deploy(archive_path):
 def deploy():
     """creates and distributes an archive to my web servers"""
     archive_path = do_pack()
-    if archive_path is None:
-        return False
-    return do_deploy(archive_path)
+    return do_deploy(archive_path) if archive_path else False
