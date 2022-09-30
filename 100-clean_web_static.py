@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Fabric script that deletes out-of-date archives
-"""
+"""Fabric script that deletes out-of-date archives"""
 from fabric.api import run, put, local, env, cd, lcd
 from datetime import datetime
 from os.path import exists, isdir
@@ -10,9 +8,7 @@ env.hosts = ['44.210.86.178', '44.200.174.223']
 
 
 def do_pack():
-    """
-    generates an archive for web_static folder
-    """
+    """generates an archive for web_static folder"""
     try:
         date = datetime.now().strftime("%Y%m%d%H%M%S")
         if isdir("versions") is False:
@@ -25,9 +21,7 @@ def do_pack():
 
 
 def do_deploy(archive_path):
-    """
-    distributes an archive to my web servers
-    """
+    """distributes an archive to my web server"""
     if exists(archive_path) is False:
         return False
     try:
@@ -48,9 +42,7 @@ def do_deploy(archive_path):
 
 
 def deploy():
-    """
-    creates and distributes an archive to my web servers
-    """
+    """creates and distributes an archive to my web servers"""
     archive_path = do_pack()
     if archive_path is None:
         return False
@@ -58,9 +50,7 @@ def deploy():
 
 
 def do_clean(number=0):
-    """
-    deletes out-of-date archives
-    """
+    """deletes out-of-date archives"""
     nb_of_arch = local('ls -ltr versions | wc -l', capture=True).stdout
     nb_of_arch = int(nb_of_arch) - 1
     if int(number) == 0 or int(number) == 1:
