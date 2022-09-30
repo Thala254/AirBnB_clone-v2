@@ -11,7 +11,7 @@ env.hosts = ['44.210.86.178', '44.200.174.223']
 
 def do_pack():
     """
-        generates an archive for web_static folder
+    generates an archive for web_static folder
     """
     try:
         date = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -26,7 +26,7 @@ def do_pack():
 
 def do_deploy(archive_path):
     """
-        distributes an archive to my web servers
+    distributes an archive to my web servers
     """
     if exists(archive_path) is False:
         return False
@@ -49,7 +49,7 @@ def do_deploy(archive_path):
 
 def deploy():
     """
-        creates and distributes an archive to my web servers
+    creates and distributes an archive to my web servers
     """
     archive_path = do_pack()
     if archive_path is None:
@@ -59,7 +59,7 @@ def deploy():
 
 def do_clean(number=0):
     """
-        deletes out-of-date archives
+    deletes out-of-date archives
     """
     nb_of_arch = local('ls -ltr versions | wc -l', capture=True).stdout
     nb_of_arch = int(nb_of_arch) - 1

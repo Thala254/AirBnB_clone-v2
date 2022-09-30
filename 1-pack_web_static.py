@@ -10,7 +10,7 @@ from os.path import isdir
 
 def do_pack():
     """
-        generates an archive for web_static folder
+    generates an archive for web_static folder
     """
     try:
         date = datetime.now().strftime("%Y%m%d%H%M%S")
