@@ -1,17 +1,15 @@
 #!/usr/bin/python3
-"""
-Fabric script that generates a .tgz archive from the contents of the
-web_static folder
-"""
+'''Fabric script to generate a .tgz archive'''
 
-from fabric.api import local
+from fabric.api import local, runs_once
 from datetime import datetime
 from os.path import isdir
 from os import stat
 
 
+@runs_once
 def do_pack():
-    """generates an archive for web_static folder"""
+    '''generates .tgz archive from the contents of the web_static folder'''
     try:
         date = datetime.now().strftime("%Y%m%d%H%M%S")
         if isdir("versions") is False:

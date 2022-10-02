@@ -1,7 +1,6 @@
 #!/usr/bin/python3
-"""
-Fabric script that deletes out-of-date archives
-"""
+'''fabric script that deletes out-of-date archives'''
+
 from fabric.api import run, put, local, env, cd, lcd, runs_once
 from datetime import datetime
 from os.path import exists, isdir
@@ -13,7 +12,7 @@ env.hosts = ['44.210.86.178', '44.200.174.223']
 
 @runs_once
 def do_pack():
-    """generates an archive for web_static folder"""
+    '''generates an archive for web_static folder'''
     try:
         date = datetime.now().strftime("%Y%m%d%H%M%S")
         if isdir("versions") is False:
@@ -29,7 +28,7 @@ def do_pack():
 
 
 def do_deploy(archive_path):
-    """distributes an archive to my web server"""
+    '''distributes an archive to my web server'''
     if exists(archive_path) is False:
         return False
     try:
@@ -51,13 +50,13 @@ def do_deploy(archive_path):
 
 
 def deploy():
-    """creates and distributes an archive to my web servers"""
+    '''creates and distributes an archive to my web servers'''
     archive_path = do_pack()
     return do_deploy(archive_path) if archive_path else False
 
 
 def do_clean(number=0):
-    """deletes out-of-date archives"""
+    '''deletes out-of-date archives'''
     nb_of_arch_loc = local('ls -ltr versions | wc -l', capture=True).stdout
     nb_of_arch_rem = run('ls -ltr /data/web_static/releases | wc -l').stdout
     nb_of_arch_loc = int(nb_of_arch_loc) - 1
