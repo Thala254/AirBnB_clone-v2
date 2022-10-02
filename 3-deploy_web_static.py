@@ -5,8 +5,7 @@ fab -f 3-deploy_web_static.py deploy -i ssh-key -u ubuntu
 """
 
 from datetime import datetime
-from os import stat
-from os.path import exists, isdir
+from os.path import isdir, isfile
 from fabric.api import put, run, env, local, runs_once
 
 env.hosts = ['44.210.86.178', '44.200.174.223']
@@ -15,20 +14,16 @@ env.hosts = ['44.210.86.178', '44.200.174.223']
 @runs_once
 def do_pack():
     """
-    generates an archive for web_static folder
+    making an archive on web_static folder
     """
-    try:
-        date = datetime.now().strftime("%Y%m%d%H%M%S")
-        filename = f"versions/web_static_{date}.tgz"
-        if isdir("versions") is False:
-            local("mkdir versions")
-        print(f"Packing web_static to {filename}")
-        local(f"tar -cvzf {filename} web_static")
-        archive_size = stat(filename).st_size
-        print(f"web_static packed: {filename} -> {archive_size} Bytes")
-        return filename
-    except Exception:
+    dt = datetime.now().strftime("%Y%m%d%H%M%S")
+    file = f"versions/web_static_{dt}.tgz"
+    if isdir("versions") is False:
+        if local("mkdir -p versions").failed is True:
+            return None
+    if local(f"tar -cvzf {file} web_static").failed is True:
         return None
+    return file
 
 
 def do_deploy(archive_path):
@@ -39,29 +34,40 @@ def do_deploy(archive_path):
         If the file doesn't exist at archive_path or an error occurs - False.
         Otherwise - True.
     """
-    if exists(archive_path) is False:
+    if isfile(archive_path) is False:
         return False
-    try:
-        filename = archive_path.split("/")[-1]
-        no_ext = filename.split(".")[0]
-        path = "/data/web_static/releases/"
-        put(archive_path, '/tmp/')
-        run(f'mkdir -p {path}{no_ext}')
-        run(f'tar -xzf /tmp/{filename} -C {path}{no_ext}/')
-        run(f'rm /tmp/{filename}')
-        run(f'mv {path}{no_ext}/web_static/* {path}{no_ext}/')
-        run(f'rm -rf {path}{no_ext}/web_static')
-        run('rm -rf /data/web_static/current')
-        run(f'ln -s {path}{no_ext}/ /data/web_static/current')
-        print('New version deployed!')
-        return True
-    except Exception:
+    file = archive_path.split("/")[-1]
+    name = file.split(".")[0]
+
+    if put(archive_path, f"/tmp/{file}").failed is True:
         return False
+    if run(f"rm -rf /data/web_static/releases/{name}/").failed is True:
+        return False
+    if run(f"mkdir -p /data/web_static/releases/{name}/").failed is True:
+        return False
+    if run(f"tar -xzf /tmp/{file} -C /data/web_static/releases/{name}/"
+           ).failed is True:
+        return False
+    if run(f"rm /tmp/{file}").failed is True:
+        return False
+    if run("mv /data/web_static/releases/{}/web_static/* "
+           "/data/web_static/releases/{}/".format(name, name)
+           ).failed is True:
+        return False
+    if run(f"rm -rf /data/web_static/releases/{name}/web_static"
+           ).failed is True:
+        return False
+    if run("rm -rf /data/web_static/current").failed is True:
+        return False
+    if run("ln -s /data/web_static/releases/{name}/ /data/web_static/current"
+           ).failed is True:
+        return False
+    return True
 
 
 def deploy():
     """
     Create and distribute an archive to a web server
     """
-    archive_path = do_pack()
-    return do_deploy(archive_path) if archive_path else False
+    file = do_pack()
+    return do_deploy(file) if file else False
