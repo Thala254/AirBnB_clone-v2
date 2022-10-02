@@ -1,30 +1,46 @@
 #!/usr/bin/python3
-'''fabric script to distribute an archive to my web servers'''
+"""
+Fabric script to deploy tgz archive
+fab -f 2-do_deploy_web_static.py do_deploy:archive_path=filepath
+    -i private-key -u user
+"""
 
-from fabric.api import put, run, env
 from os.path import exists
+from fabric.api import put, run, env
 
-
-env.hosts = ['44.210.86.178', '44.200.174.223']
+env.hosts = ['35.243.128.200', '3.239.120.96']
 
 
 def do_deploy(archive_path):
-    '''distributes an archive to my web servers'''
-    if exists(archive_path) is False:
+    """
+    copies archive file from local to my webservers
+    """
+
+    if not exists(archive_path):
         return False
     try:
-        filename = archive_path.split("/")[-1]
-        no_ext = filename.split(".")[0]
-        path = "/data/web_static/releases/"
-        put(archive_path, '/tmp/')
-        run(f'mkdir -p {path}{no_ext}')
-        run(f'tar -xzf /tmp/{filename} -C {path}{no_ext}/')
-        run(f'rm /tmp/{filename}')
-        run(f'mv {path}{no_ext}/web_static/* {path}{no_ext}/')
-        run(f'rm -rf {path}{no_ext}/web_static')
+        file_name = archive_path.split("/")[-1].split(".")[0]
+        put(archive_path, "/tmp/")
+
+        run("mkdir -p /data/web_static/releases/{}".format(file_name))
+
+        run("tar -xzf /tmp/{}.tgz -C /data/web_static/releases/{}/"
+            .format(file_name, file_name))
+
+        run('rm -rf /tmp/{}.tgz'.format(file_name))
+
+        run(('mv /data/web_static/releases/{}/web_static/* ' +
+            '/data/web_static/releases/{}/')
+            .format(file_name, file_name))
+
+        run('rm -rf /data/web_static/releases/{}/web_static'
+            .format(file_name))
+
         run('rm -rf /data/web_static/current')
-        run(f'ln -s {path}{no_ext}/ /data/web_static/current')
-        print('New version deployed!')
+
+        run(('ln -s /data/web_static/releases/{}/' +
+            ' /data/web_static/current')
+            .format(file_name))
         return True
     except Exception:
         return False
