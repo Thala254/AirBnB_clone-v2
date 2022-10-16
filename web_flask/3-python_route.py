@@ -1,36 +1,40 @@
 #!/usr/bin/python3
 """
-Script that starts a Flask web application
-Run it with python3 -m 3-python_route or ./3-python_route.py
+This is module 3-python_route.
+It starts a minimal Flask apllication.
+Run it with python3 -m 3-python_route or ./3-python_route
 """
 from flask import Flask
 app = Flask(__name__)
 
 
 @app.route('/', strict_slashes=False)
-def index():
-    """function that handles / route"""
-    return 'Hello HBNB!'
+def hello_hbnb():
+    """flask hello world"""
+    return "Hello HBNB!"
 
 
 @app.route('/hbnb', strict_slashes=False)
 def hbnb():
-    """function that handles /hbnb route"""
-    return 'HBNB'
+    """add a path to the url"""
+    return "HBNB"
 
 
 @app.route('/c/<text>', strict_slashes=False)
 def c_text(text):
-    """function that handles /c/<text> route"""
-    return f"C {text.replace('_', ' ')}"
+    """make a simple variable rule"""
+    return "C {}".format(text.replace("_", " "))
 
 
-@app.route('/python', strict_slashes=False)
+@app.route('/python', strict_slashes=False)   # , defaults={'text': "is cool"})
+# redirection, strict_slashes prevents the 301 redirect when missing last /
+# see http://stackoverflow.com/a/17628419/7484498
+# the default value can be put in 2 different places.
 @app.route('/python/<text>', strict_slashes=False)
-def python(text="is cool"):
-    """function that handles /python/(<text>) route"""
-    return f"Python {text.replace('_', ' ')}"
+def python_text(text="is cool"):
+    """give a rule a default value"""
+    return "Python {}".format(text.replace("_", " "))
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host="0.0.0.0", port="5000")
