@@ -4,7 +4,6 @@ from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 from os import getenv
 from models.base_model import BaseModel, Base
-import models
 
 
 class User(BaseModel, Base):

@@ -2,7 +2,6 @@
 """ State Module for HBNB project """
 from sqlalchemy import Column, String, Table
 from os import getenv
-import models
 from models.base_model import BaseModel, Base
 
 
