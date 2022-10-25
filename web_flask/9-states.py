@@ -1,21 +1,22 @@
 #!/usr/bin/python3
 """
 starts a Flask web application
-Run this script from AirBnB_v2 directory for imports
 """
+
 from flask import Flask, render_template
+from models import *
 from models import storage
 app = Flask(__name__)
 
 
 @app.route('/states', strict_slashes=False)
-@app.route('/states/<id>', strict_slashes=False)
-def states(id=None):
+@app.route('/states/<state_id>', strict_slashes=False)
+def states(state_id=None):
     """display the states and cities listed in alphabetical order"""
     states = storage.all("State")
-    if id is not None:
-        id = f'State.{id}'
-    return render_template('9-states.html', states=states, id=id)
+    if state_id is not None:
+        state_id = 'State.' + state_id
+    return render_template('9-states.html', states=states, state_id=state_id)
 
 
 @app.teardown_appcontext
